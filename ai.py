@@ -13,9 +13,10 @@ from torchvision import transforms
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-BATCH_SIZE = 32 # Обработка картинок 
-LEARNING_RATE = 0.001  
+BATCH_SIZE = 32  # Обработка картинок
+LEARNING_RATE = 0.001
 EPOCHS = 50  # Сколько раз пройтись по сету
+
 
 class HMNIST_28x28_DS(Dataset):
     def __init__(self, data_path, transform=None):
@@ -56,6 +57,7 @@ class HMNIST_28x28_DS(Dataset):
 
         return image, label
 
+
 class ImprovedHMNIST_28x28(nn.Module):
     def __init__(self):
         super().__init__()
@@ -64,25 +66,25 @@ class ImprovedHMNIST_28x28(nn.Module):
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2),
-            
+
             nn.Conv2d(32, 64, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2),
-            
+
             nn.Conv2d(64, 128, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
             nn.AdaptiveAvgPool2d((7, 7))
         )
-        
+
         self.classifier = nn.Sequential(
             nn.Linear(128 * 7 * 7, 512),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(512, 7)
         )
-        
+
         # Инициализация весов
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -97,6 +99,7 @@ class ImprovedHMNIST_28x28(nn.Module):
         x = self.classifier(x)
         return x
 
+
 def train_model(model, train_loader, test_loader, loss_fn, optimizer, scheduler=None, epochs=10):
     model.to(device)
     train_losses, test_losses, accuracies = [], [], []
@@ -109,16 +112,16 @@ def train_model(model, train_loader, test_loader, loss_fn, optimizer, scheduler=
     for epoch in range(epochs):
         model.train()
         running_loss, correct, total = 0.0, 0, 0
-        
-        train_iter = tqdm(train_loader, desc=f'Epoch {epoch+1}/{epochs} [Train]', leave=False)
-        
+
+        train_iter = tqdm(train_loader, desc=f'Epoch {epoch + 1}/{epochs} [Train]', leave=False)
+
         for images, labels in train_iter:
             images, labels = images.to(device), labels.to(device)
-            
+
             with torch.cuda.amp.autocast():
                 outputs = model(images)
                 loss = loss_fn(outputs, labels)
-            
+
             optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
@@ -160,7 +163,7 @@ def train_model(model, train_loader, test_loader, loss_fn, optimizer, scheduler=
                 scheduler.step()
 
         current_lr = optimizer.param_groups[0]['lr']
-        print(f"Epoch {epoch+1}/{epochs} | "
+        print(f"Epoch {epoch + 1}/{epochs} | "
               f"Train Loss: {train_loss:.4f} | Train Acc: {train_accuracy:.2f}% | "
               f"Test Loss: {test_loss:.4f} | Test Acc: {accuracy:.2f}% | "
               f"LR: {current_lr:.2e}")
@@ -173,7 +176,7 @@ def train_model(model, train_loader, test_loader, loss_fn, optimizer, scheduler=
         else:
             patience_counter += 1
             if patience_counter >= early_stopping_patience:
-                print(f"Early stopping triggered at epoch {epoch+1}")
+                print(f"Early stopping triggered at epoch {epoch + 1}")
                 break
 
     print(f"\nBest Test Loss: {best_loss:.4f} | Best Test Accuracy: {best_accuracy:.2f}%")
@@ -205,7 +208,7 @@ def visualize_predictions(model, dataset, class_names, num_samples=10):
     plt.tight_layout()
     plt.show()
 
-    
+
 def evaluate_model(model, dataloader, class_names):
     all_preds = []
     all_labels = []
@@ -229,16 +232,18 @@ def evaluate_model(model, dataloader, class_names):
     print("\nClassification Report:")
     print(classification_report(all_labels, all_preds, target_names=class_names))
 
+
 import json
 import os
 
+
 def save_model(model, save_dir='saved_model', model_name='improved_hmnist'):
     os.makedirs(save_dir, exist_ok=True)
-    
+
     # Сохраняем веса модели
     model_path = os.path.join(save_dir, f'{model_name}.pth')
     torch.save(model.state_dict(), model_path)
-    
+
     # Сохраняем метаданные
     metadata = {
         "model_name": model_name,
@@ -248,11 +253,11 @@ def save_model(model, save_dir='saved_model', model_name='improved_hmnist'):
         "epochs": EPOCHS,
         "best_accuracy": max(accuracies)
     }
-    
+
     metadata_path = os.path.join(save_dir, f'{model_name}_metadata.json')
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=4)
-    
+
     print(f"✅ Model and metadata saved to '{save_dir}'")
 
 
@@ -269,7 +274,7 @@ if __name__ == '__main__':
 
     model = ImprovedHMNIST_28x28()
     optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20,eta_min=1e-5)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20, eta_min=1e-5)
     loss_fn = nn.CrossEntropyLoss()
 
     train_losses, test_losses, accuracies = train_model(
