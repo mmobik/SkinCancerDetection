@@ -132,7 +132,6 @@ def create_gradio_interface(model):
 
 
 if __name__ == '__main__':
-    # *** ВАЖНО: Укажите правильные пути к вашей обученной модели! ***
     MODEL_PATH = 'saved_model/improved_hmnist.pth'  # <---- !!!
     # Лучше не использовать metadata_path, а просто указать CLASS_NAMES вручную
     # metadata_path = 'saved_model/improved_hmnist_metadata.json'
