@@ -132,10 +132,7 @@ def create_gradio_interface(model):
 
 
 if __name__ == '__main__':
-    MODEL_PATH = 'saved_model/improved_hmnist.pth'  # <---- !!!
-    # Лучше не использовать metadata_path, а просто указать CLASS_NAMES вручную
-    # metadata_path = 'saved_model/improved_hmnist_metadata.json'
-    # ================================================================
+    MODEL_PATH = 'saved_model/improved_hmnist.pth'
     model = load_model(MODEL_PATH)
     gradio_interface = create_gradio_interface(model)
     gradio_interface.launch(share=False)
