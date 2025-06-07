@@ -126,7 +126,7 @@ def create_gradio_interface(model):
     interface = gr.Interface(fn=process_image, inputs=image_input, outputs=label,
                              title="Skin Cancer AI Detector",
                              description="Upload an image of a mole to get a risk assessment.",
-                             live=False)  # <- Сделаем live=False
+                             live=False)
 
     return interface
 
