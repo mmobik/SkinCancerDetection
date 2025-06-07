@@ -9,12 +9,11 @@ from torchvision import transforms
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-# === Не менять! (Параметры обучения из оригинального скрипта) ===
+# параметры для обучения 
 BATCH_SIZE = 32  # Обработка картинок
 LEARNING_RATE = 0.001
 EPOCHS = 50  # Сколько раз пройтись по сету
 
-# Замените сокращения на полные названия (на русском)
 CLASS_NAMES_FULL = {
     'akiec': 'Актинический кератоз',  # Actinic Keratosis
     'bcc': 'Базальноклеточный рак',  # Basal Cell Carcinoma
@@ -25,9 +24,7 @@ CLASS_NAMES_FULL = {
     'vasc': 'Сосудистое образование'  # Vascular Lesion
 }
 
-CLASS_NAMES = list(CLASS_NAMES_FULL.keys())  # Оставляем список сокращений для совместимости с моделью
-# ===============================================================
-
+CLASS_NAMES = list(CLASS_NAMES_FULL.keys())
 
 class HMNIST_28x28_PredictionDS(Dataset):  # Упрощенный Dataset для предсказаний
     def __init__(self, image_paths, transform=None):
@@ -109,13 +106,13 @@ def predict_image(image_path, model):
 
     # Отсортировать вероятности и вернуть топ-3
     sorted_confidences = dict(sorted(confidences.items(), key=lambda item: item[1], reverse=True))
-    top3_predictions = {CLASS_NAMES_FULL[k]: sorted_confidences[k] for k in list(sorted_confidences)[:3]}  # Заменяем сокращения
+    top3_predictions = {CLASS_NAMES_FULL[k]: sorted_confidences[k] for k in list(sorted_confidences)[:3]}
 
     return top3_predictions
 
 
 def create_gradio_interface(model):
-    def process_image(img):  # Функция для Gradio
+    def process_image(img):
         if img is None:
             return "No image uploaded"
         temp_image_path = "temp_image.jpg"
